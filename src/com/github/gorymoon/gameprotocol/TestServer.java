@@ -6,6 +6,8 @@ import com.github.gorymoon.gameprotocol.api.Packet;
 import com.github.gorymoon.gameprotocol.api.Player;
 import com.github.gorymoon.gameprotocol.core.GameServer;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Scanner;
 
 public class TestServer implements IServerMessageListener {

@@ -5,6 +5,7 @@ import com.github.gorymoon.gameprotocol.api.Packet;
 import com.github.gorymoon.gameprotocol.api.Player;
 import com.github.gorymoon.gameprotocol.core.GameServer;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -39,8 +40,9 @@ public class PlayerThread extends Thread {
         while (!Thread.interrupted() && running) {
             try {
                 o = in.readObject();
-            } catch (SocketException e) {
+            } catch (SocketException | EOFException e) {
                 closeConnection();
+                server.playerLeft(player);
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             }
@@ -64,7 +66,7 @@ public class PlayerThread extends Thread {
     }
 
     public void disconnectPlayer() {
-        sendMessage(new Packet(MessageType.SERVER_CLOSED, "Remote closed"));
+        sendMessage(new Packet(MessageType.SERVER_CLOSED, "Server closed"));
         closeConnection();
     }
 

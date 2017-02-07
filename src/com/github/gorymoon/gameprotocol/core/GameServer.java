@@ -26,7 +26,7 @@ public class GameServer implements Runnable {
     private ServerSocket serverSocket;
     private Socket socket = null;
 
-    private int id = 0;
+    private int playerIds = 0;
 
     public GameServer(IServerMessageListener listener, int port, int maxPlayers) {
         this.listener = listener;
@@ -86,9 +86,10 @@ public class GameServer implements Runnable {
                 running = false;
             }
             if (playerThreads.size() < maxPlayers) {
-                Player player = new Player(socket.getInetAddress(), id++);
+                Player player = new Player(socket.getInetAddress(), playerIds++);
                 PlayerThread thread = new PlayerThread(this, socket, player);
                 listener.onPlayerConnect(player);
+                sendToAllPlayers(new Packet(MessageType.PLAYER_JOINED, String.valueOf(player.getID())));
                 playerThreads.put(player, thread);
                 thread.run();
             } else {
@@ -108,7 +109,7 @@ public class GameServer implements Runnable {
     public void playerLeft(Player player) {
         playerThreads.remove(player);
         listener.onPlayerDisconnect(player);
-        sendToAllPlayers(new Packet(MessageType.PLAYER_LEFT, String.valueOf(id)));
+        sendToAllPlayers(new Packet(MessageType.PLAYER_LEFT, String.valueOf(player.getID())));
     }
 
     private boolean setupConnection() {

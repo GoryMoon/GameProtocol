@@ -4,11 +4,13 @@ import com.github.gorymoon.gameprotocol.api.IClientMessageListener;
 import com.github.gorymoon.gameprotocol.api.MessageType;
 import com.github.gorymoon.gameprotocol.api.Packet;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.Random;
 
 public class GameClient implements Runnable {
 
@@ -25,11 +27,12 @@ public class GameClient implements Runnable {
         this.listener = listener;
         this.hostname = hostname;
         this.port = port;
-        this.networkThread = new Thread(this, "Client network thread");
     }
 
     public void connect() {
         running = true;
+        Random rand = new Random();
+        networkThread = new Thread(this, "Client network thread" + rand.nextInt(2000));
         networkThread.start();
     }
 
@@ -47,6 +50,9 @@ public class GameClient implements Runnable {
                 out.close();
             if (socket != null)
                 socket.close();
+            in = null;
+            out = null;
+            socket = null;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -71,8 +77,9 @@ public class GameClient implements Runnable {
             Object o = null;
             try {
                 o = in.readObject();
-            } catch (SocketException e) {
+            } catch (SocketException | EOFException e) {
                 closeConnection();
+                listener.onDisconnect("remote closed unexpectedly");
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             }
@@ -101,7 +108,6 @@ public class GameClient implements Runnable {
             System.out.println("Client network started!");
             return true;
         } catch (IOException e) {
-            e.printStackTrace();
             return false;
         }
     }
