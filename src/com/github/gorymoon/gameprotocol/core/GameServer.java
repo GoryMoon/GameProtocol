@@ -106,11 +106,12 @@ public class GameServer implements Runnable {
         }
     }
 
-    public void playerLeft(Player player) {
+    public void playerLeft(Player player, boolean expected) {
         playerThreads.remove(player);
-        listener.onPlayerDisconnect(player);
+        listener.onPlayerDisconnect(player, expected);
         sendToAllPlayers(new Packet(MessageType.PLAYER_LEFT, String.valueOf(player.getID())));
     }
+
 
     private boolean setupConnection() {
         try {

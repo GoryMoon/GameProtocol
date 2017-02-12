@@ -6,8 +6,6 @@ import com.github.gorymoon.gameprotocol.api.Packet;
 import com.github.gorymoon.gameprotocol.api.Player;
 import com.github.gorymoon.gameprotocol.core.GameServer;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Scanner;
 
 public class TestServer implements IServerMessageListener {
@@ -51,8 +49,8 @@ public class TestServer implements IServerMessageListener {
     }
 
     @Override
-    public void onPlayerDisconnect(Player player) {
-        System.out.println("Player disconnected from the server: " + player.getAddress());
+    public void onPlayerDisconnect(Player player, boolean unexpected) {
+        System.out.println("Player disconnected from the server: " + player.getAddress() + ", Expected: " + unexpected);
     }
 
     @Override

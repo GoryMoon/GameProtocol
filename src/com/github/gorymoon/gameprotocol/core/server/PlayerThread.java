@@ -41,8 +41,9 @@ public class PlayerThread extends Thread {
             try {
                 o = in.readObject();
             } catch (SocketException | EOFException e) {
+                if (running)
+                    server.playerLeft(player, false);
                 closeConnection();
-                server.playerLeft(player);
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             }
@@ -50,7 +51,7 @@ public class PlayerThread extends Thread {
             if (o instanceof Packet) {
                 Packet p = (Packet) o;
                 if (p.type == MessageType.DISCONNECT) {
-                    server.playerLeft(player);
+                    server.playerLeft(player, true);
                     closeConnection();
                 } else {
                     server.messageFromPlayer(player, (Packet) o);
@@ -91,4 +92,5 @@ public class PlayerThread extends Thread {
             }
         }
     }
+
 }

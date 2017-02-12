@@ -22,6 +22,7 @@ public class GameClient implements Runnable {
     private Socket socket;
     private ObjectOutputStream out;
     private ObjectInputStream in;
+    private boolean stopped;
 
     public GameClient(IClientMessageListener listener, String hostname, int port) {
         this.listener = listener;
@@ -31,6 +32,7 @@ public class GameClient implements Runnable {
 
     public void connect() {
         running = true;
+        stopped = false;
         Random rand = new Random();
         networkThread = new Thread(this, "Client network thread" + rand.nextInt(2000));
         networkThread.start();
@@ -39,6 +41,7 @@ public class GameClient implements Runnable {
     public void diconnect() {
         sendToServer(new Packet(MessageType.DISCONNECT, ""));
         closeConnection();
+        stopped = true;
     }
 
     private void closeConnection() {
@@ -70,6 +73,7 @@ public class GameClient implements Runnable {
     @Override
     public void run() {
         if (!setupConnection()) {
+            listener.onError(MessageType.ERROR_REACH, "Can't reach server");
             running = false;
         }
 
@@ -79,7 +83,13 @@ public class GameClient implements Runnable {
                 o = in.readObject();
             } catch (SocketException | EOFException e) {
                 closeConnection();
-                listener.onDisconnect("remote closed unexpectedly");
+                String message = "Server closed unexpectedly";
+                if (!stopped) {
+                    listener.onError(MessageType.ERROR_CLOSED, message);
+                    listener.onDisconnect(message);
+                } else {
+                    listener.onDisconnect("Disconnected from server");
+                }
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             }

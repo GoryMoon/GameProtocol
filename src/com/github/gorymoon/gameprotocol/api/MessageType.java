@@ -9,4 +9,6 @@ public enum MessageType implements Serializable {
     MESSAGE,
     SERVER_CLOSED,
     ERROR_FULL,
+    ERROR_CLOSED,
+    ERROR_REACH
 }
