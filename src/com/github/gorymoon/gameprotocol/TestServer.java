@@ -48,8 +48,8 @@ public class TestServer implements IServerMessageListener {
     }
 
     @Override
-    public void onPlayerDisconnect(Player player, boolean unexpected) {
-        System.out.println("Player disconnected from the server: " + player.getAddress() + ": " + player.getID() + ", Expected: " + unexpected);
+    public void onPlayerDisconnect(Player player, boolean expected) {
+        System.out.println("Player disconnected from the server: " + player.getAddress() + ": " + player.getID() + ", Expected: " + expected);
     }
 
     @Override

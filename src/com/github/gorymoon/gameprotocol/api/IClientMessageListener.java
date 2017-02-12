@@ -6,6 +6,6 @@ public interface IClientMessageListener {
     void onDisconnect(String reason);
     void onError(MessageType type, String message);
 
-    void onMessageReceived(MessageType type, String message);
+    void onMessageReceived(MessageType type, Object message);
 
 }

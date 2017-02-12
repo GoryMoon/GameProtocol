@@ -107,7 +107,7 @@ public class GameClient implements Runnable {
                     listener.onDisconnect(String.valueOf(p.data));
                     closeConnection();
                 } else {
-                    listener.onMessageReceived(p.type, String.valueOf(p.data));
+                    listener.onMessageReceived(p.type, p.data);
                 }
             }
         }

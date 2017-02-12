@@ -26,8 +26,6 @@ public class GameServer implements Runnable {
     private ServerSocket serverSocket;
     private Socket socket = null;
 
-    private int playerIds = 0;
-
     public GameServer(IServerMessageListener listener, int port, int maxPlayers) {
         this.listener = listener;
         this.port = port;

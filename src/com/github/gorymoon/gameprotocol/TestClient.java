@@ -56,7 +56,7 @@ public class TestClient implements IClientMessageListener {
     }
 
     @Override
-    public void onMessageReceived(MessageType type, String message) {
+    public void onMessageReceived(MessageType type, Object message) {
         System.out.println("Message from server with type (" + type.toString() + "): " + message);
     }
 }
