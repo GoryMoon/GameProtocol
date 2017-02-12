@@ -5,10 +5,10 @@ import java.io.Serializable;
 public class Packet implements Serializable {
 
     public MessageType type;
-    public String message;
+    public Object data;
 
-    public Packet(MessageType type, String message) {
+    public Packet(MessageType type, Object data) {
         this.type = type;
-        this.message = message;
+        this.data = data;
     }
 }

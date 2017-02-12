@@ -1,4 +1,4 @@
-package com.github.gorymoon.gameprotocol.core;
+package com.github.gorymoon.gameprotocol.client;
 
 import com.github.gorymoon.gameprotocol.api.IClientMessageListener;
 import com.github.gorymoon.gameprotocol.api.MessageType;
@@ -38,7 +38,7 @@ public class GameClient implements Runnable {
         networkThread.start();
     }
 
-    public void diconnect() {
+    public void disconnect() {
         sendToServer(new Packet(MessageType.DISCONNECT, ""));
         closeConnection();
         stopped = true;
@@ -65,6 +65,8 @@ public class GameClient implements Runnable {
         try {
             if (out != null)
                 out.writeObject(packet);
+            else
+                System.out.println("Not connected to server!");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -83,8 +85,8 @@ public class GameClient implements Runnable {
                 o = in.readObject();
             } catch (SocketException | EOFException e) {
                 closeConnection();
-                String message = "Server closed unexpectedly";
                 if (!stopped) {
+                    String message = "Server closed unexpectedly";
                     listener.onError(MessageType.ERROR_CLOSED, message);
                     listener.onDisconnect(message);
                 } else {
@@ -97,12 +99,15 @@ public class GameClient implements Runnable {
             if (o instanceof Packet) {
                 Packet p = (Packet) o;
                 if (p.type == MessageType.ERROR_FULL) {
-                    listener.onError(p.type, p.message);
+                    listener.onError(p.type, String.valueOf(p.data));
+                    stopped = true;
+                } else if (p.type == MessageType.CONNECTED) {
+                    listener.onConnect();
                 } else if (p.type == MessageType.SERVER_CLOSED) {
-                    listener.onDisconnect(p.message);
+                    listener.onDisconnect(String.valueOf(p.data));
                     closeConnection();
                 } else {
-                    listener.onMessageReceived(p.type, p.message);
+                    listener.onMessageReceived(p.type, String.valueOf(p.data));
                 }
             }
         }
@@ -113,7 +118,6 @@ public class GameClient implements Runnable {
             socket = new Socket(hostname, port);
             in = new ObjectInputStream(socket.getInputStream());
             out = new ObjectOutputStream(socket.getOutputStream());
-            listener.onConnect();
 
             System.out.println("Client network started!");
             return true;

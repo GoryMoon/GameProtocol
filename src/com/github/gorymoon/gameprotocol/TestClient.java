@@ -3,7 +3,7 @@ package com.github.gorymoon.gameprotocol;
 import com.github.gorymoon.gameprotocol.api.IClientMessageListener;
 import com.github.gorymoon.gameprotocol.api.MessageType;
 import com.github.gorymoon.gameprotocol.api.Packet;
-import com.github.gorymoon.gameprotocol.core.GameClient;
+import com.github.gorymoon.gameprotocol.client.GameClient;
 
 import java.util.Scanner;
 
@@ -11,21 +11,24 @@ public class TestClient implements IClientMessageListener {
 
     private Scanner scanner;
 
-    public TestClient() {
-        GameClient client = new GameClient(this, "127.0.0.1", 1234);
+    public TestClient(String host, String port) {
+        GameClient client = new GameClient(this, host, Integer.parseInt(port));
         scanner = new Scanner(System.in);
         String in;
         loop: while (true) {
             in = scanner.nextLine();
-            switch (in) {
+            switch (in.substring(0, in.contains(" ") ? in.indexOf(' '): in.length())) {
                 case "start":
                     client.connect();
                     break;
                 case "send":
-                    client.sendToServer(new Packet(MessageType.MESSAGE, "Hi"));
+                    if (in.length() > 4) {
+                        client.sendToServer(new Packet(MessageType.MESSAGE, in.substring(5)));
+                        System.out.println("Message sent!");
+                    }
                     break;
                 case "stop":
-                    client.diconnect();
+                    client.disconnect();
                     break loop;
                 default:
                     System.out.println("Unknown command!");
@@ -34,7 +37,7 @@ public class TestClient implements IClientMessageListener {
     }
 
     public static void main(String[] args) {
-        new TestClient();
+        new TestClient(args[0], args[1]);
     }
 
     @Override

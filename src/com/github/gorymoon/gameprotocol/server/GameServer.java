@@ -1,10 +1,9 @@
-package com.github.gorymoon.gameprotocol.core;
+package com.github.gorymoon.gameprotocol.server;
 
 import com.github.gorymoon.gameprotocol.api.IServerMessageListener;
 import com.github.gorymoon.gameprotocol.api.MessageType;
 import com.github.gorymoon.gameprotocol.api.Packet;
 import com.github.gorymoon.gameprotocol.api.Player;
-import com.github.gorymoon.gameprotocol.core.server.PlayerThread;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -13,6 +12,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class GameServer implements Runnable {
 
@@ -33,7 +33,7 @@ public class GameServer implements Runnable {
         this.port = port;
         this.maxPlayers = maxPlayers;
         this.playerThreads = new HashMap<>();
-        this.mainNetworkThread = new Thread(this, "GameProtocol Network Thread (" + listener.getServerName() + ")");
+        this.mainNetworkThread = new Thread(this, "GameProtocol Network Thread");
     }
 
     public void stop() {
@@ -46,7 +46,7 @@ public class GameServer implements Runnable {
         }
         for (Map.Entry<Player, PlayerThread> entry: playerThreads.entrySet())
             entry.getValue().disconnectPlayer();
-        System.out.println("Server (" + listener.getServerName() + ") stopped!");
+        System.out.println("GameProtocol Network Thread stopped!");
     }
 
     public void start() {
@@ -54,18 +54,31 @@ public class GameServer implements Runnable {
         mainNetworkThread.start();
     }
 
+    public Player getPlayerFromUUID(UUID uuid) {
+        return playerThreads.entrySet().stream().filter(entry -> entry.getKey().getID().equals(uuid)).findFirst().get().getKey();
+    }
+
     public void sendToAllPlayers(Packet packet) {
         for (Map.Entry<Player, PlayerThread> entry: playerThreads.entrySet())
             sendToPlayer(entry.getKey(), packet);
     }
 
+    public void sendToAllExcept(Player player, Packet packet) {
+        for (Map.Entry<Player, PlayerThread> entry: playerThreads.entrySet()) {
+            if (!player.equals(entry.getKey()))
+                sendToPlayer(entry.getKey(), packet);
+        }
+    }
+
     public void sendToPlayer(Player player, Packet packet) {
         if (playerThreads.containsKey(player))
             playerThreads.get(player).sendMessage(packet);
+        else
+            System.out.println("Player isn't connected");
     }
 
     public void messageFromPlayer(Player player, Packet packet) {
-        listener.onMessageReceived(player, packet.type, packet.message);
+        listener.onMessageReceived(player, packet.type, packet.data);
     }
 
     @Override
@@ -86,12 +99,14 @@ public class GameServer implements Runnable {
                 running = false;
             }
             if (playerThreads.size() < maxPlayers) {
-                Player player = new Player(socket.getInetAddress(), playerIds++);
+                UUID uuid = UUID.randomUUID();
+                Player player = new Player(socket.getInetAddress(), uuid);
                 PlayerThread thread = new PlayerThread(this, socket, player);
                 listener.onPlayerConnect(player);
                 sendToAllPlayers(new Packet(MessageType.PLAYER_JOINED, String.valueOf(player.getID())));
                 playerThreads.put(player, thread);
-                thread.run();
+                sendToPlayer(player, new Packet(MessageType.CONNECTED, String.valueOf(player.getID())));
+                thread.start();
             } else {
                 try {
                     ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
@@ -116,7 +131,7 @@ public class GameServer implements Runnable {
     private boolean setupConnection() {
         try {
             serverSocket = new ServerSocket(port);
-            System.out.println("Server network (" + listener.getServerName() + ") started!");
+            System.out.println("GameProtocol Network Thread started!");
             return true;
         } catch (IOException e) {
             e.printStackTrace();

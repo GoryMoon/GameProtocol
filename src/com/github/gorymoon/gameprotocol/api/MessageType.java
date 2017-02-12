@@ -5,6 +5,7 @@ import java.io.Serializable;
 public enum MessageType implements Serializable {
     PLAYER_JOINED,
     PLAYER_LEFT,
+    CONNECTED,
     DISCONNECT,
     MESSAGE,
     SERVER_CLOSED,

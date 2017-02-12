@@ -4,26 +4,30 @@ import com.github.gorymoon.gameprotocol.api.IServerMessageListener;
 import com.github.gorymoon.gameprotocol.api.MessageType;
 import com.github.gorymoon.gameprotocol.api.Packet;
 import com.github.gorymoon.gameprotocol.api.Player;
-import com.github.gorymoon.gameprotocol.core.GameServer;
+import com.github.gorymoon.gameprotocol.server.GameServer;
 
 import java.util.Scanner;
 
 public class TestServer implements IServerMessageListener {
 
+    private GameServer gameServer;
     private Scanner scanner;
 
-    public TestServer() {
-        GameServer gameServer = new GameServer(this, 1234, 4);
+    public TestServer(String port, String players) {
+        gameServer = new GameServer(this, Integer.parseInt(port), Integer.parseInt(players));
         scanner = new Scanner(System.in);
         String in;
         loop: while (true) {
             in = scanner.nextLine();
-            switch (in) {
+            switch (in.substring(0, in.contains(" ") ? in.indexOf(' '): in.length())) {
                 case "start":
                     gameServer.start();
                     break;
                 case "send":
-                    gameServer.sendToAllPlayers(new Packet(MessageType.MESSAGE, "Hi"));
+                    if (in.length() > 4) {
+                        gameServer.sendToAllPlayers(new Packet(MessageType.MESSAGE, in.substring(5)));
+                        System.out.println("Message sent!");
+                    }
                     break;
                 case "stop":
                     gameServer.stop();
@@ -35,26 +39,22 @@ public class TestServer implements IServerMessageListener {
     }
 
     public static void main(String[] args) {
-        new TestServer();
-    }
-
-    @Override
-    public String getServerName() {
-        return "TestServer";
+        new TestServer(args[0], args[1]);
     }
 
     @Override
     public void onPlayerConnect(Player player) {
-        System.out.println("Player connected to the server: " + player.getAddress());
+        System.out.println("Player connected to the server: " + player.getAddress() + ": " + player.getID());
     }
 
     @Override
     public void onPlayerDisconnect(Player player, boolean unexpected) {
-        System.out.println("Player disconnected from the server: " + player.getAddress() + ", Expected: " + unexpected);
+        System.out.println("Player disconnected from the server: " + player.getAddress() + ": " + player.getID() + ", Expected: " + unexpected);
     }
 
     @Override
-    public void onMessageReceived(Player player, MessageType type, String message) {
-        System.out.println("Message from player (" + player.getAddress() + ") with type (" + type.toString() + "): " + message);
+    public void onMessageReceived(Player player, MessageType type, Object    message) {
+        System.out.println("Message from player (" + player.getAddress() + ": " + player.getID() + ") with type (" + type.toString() + "): " + message);
+        gameServer.sendToAllExcept(player, new Packet(type, message));
     }
 }

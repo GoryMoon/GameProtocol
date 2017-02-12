@@ -1,9 +1,8 @@
-package com.github.gorymoon.gameprotocol.core.server;
+package com.github.gorymoon.gameprotocol.server;
 
 import com.github.gorymoon.gameprotocol.api.MessageType;
 import com.github.gorymoon.gameprotocol.api.Packet;
 import com.github.gorymoon.gameprotocol.api.Player;
-import com.github.gorymoon.gameprotocol.core.GameServer;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -56,6 +55,7 @@ public class PlayerThread extends Thread {
                 } else {
                     server.messageFromPlayer(player, (Packet) o);
                 }
+                o = null;
             }
         }
         if (socket != null)

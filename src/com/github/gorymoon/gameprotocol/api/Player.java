@@ -1,13 +1,14 @@
 package com.github.gorymoon.gameprotocol.api;
 
 import java.net.InetAddress;
+import java.util.UUID;
 
 public class Player {
 
     private InetAddress address;
-    private int id;
+    private UUID id;
 
-    public Player(InetAddress inetAddress, int id) {
+    public Player(InetAddress inetAddress, UUID id) {
         address = inetAddress;
         this.id = id;
     }
@@ -16,7 +17,7 @@ public class Player {
         return address;
     }
 
-    public int getID() {
+    public UUID getID() {
         return id;
     }
 }
